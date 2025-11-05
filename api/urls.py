@@ -4,5 +4,5 @@ from . import views
 
 urlpatterns = [
     path('auctions/', views.ListCreateAuctionAPIView.as_view(), name="auctions"),
-
+    path('auctions/<int:auction_id>/', views.RetrieveAuctionAPIView.as_view(), name="auction")
 ]

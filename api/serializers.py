@@ -27,8 +27,4 @@ class AuctionSerializer(serializers.ModelSerializer):
             "deadline",
             "highest_bid",
         ]
-        extra_kwargs = {
-            'author': {'read_only': True},
-            'highest_bid': {'read_only': True},
-            'created_on': {'read_only': True}
-        }
+        read_only_fields = ('author', 'highest_bid', 'created_on')

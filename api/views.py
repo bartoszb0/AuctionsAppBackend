@@ -21,3 +21,9 @@ class ListCreateAuctionAPIView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+class RetrieveAuctionAPIView(generics.RetrieveAPIView):
+    queryset = Auction.objects.all()
+    serializer_class = AuctionSerializer
+    lookup_url_kwarg = 'auction_id'
+    permission_classes = [AllowAny]
