@@ -29,7 +29,8 @@ class Auction(models.Model):
     @property
     def highest_bid(self):
         highest = self.bids.order_by('-amount').first()
-        return highest.amount if highest else self.starting_price
+        value = highest.amount if highest else self.starting_price
+        return str(value)
 
 class Bid(models.Model):
     auction = models.ForeignKey(
