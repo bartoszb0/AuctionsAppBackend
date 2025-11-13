@@ -2,6 +2,7 @@ from .models import User, Auction
 from rest_framework import generics
 from .serializers import UserSerializer, AuctionSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework import filters
 
 class CreateUserAPIView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -9,8 +10,10 @@ class CreateUserAPIView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
 class ListCreateAuctionAPIView(generics.ListCreateAPIView):
-    queryset = Auction.objects.all()
+    queryset = Auction.objects.all().order_by('-created_on')
     serializer_class = AuctionSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
 
     def get_permissions(self):
         if self.request.method == 'POST':
