@@ -3,6 +3,8 @@ from rest_framework import generics
 from .serializers import UserSerializer, AuctionSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend # type: ignore
+
 
 class CreateUserAPIView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -12,7 +14,8 @@ class CreateUserAPIView(generics.CreateAPIView):
 class ListCreateAuctionAPIView(generics.ListCreateAPIView):
     queryset = Auction.objects.all().order_by('-created_on')
     serializer_class = AuctionSerializer
-    filter_backends = [filters.SearchFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['category']
     search_fields = ['name']
 
     def get_permissions(self):
