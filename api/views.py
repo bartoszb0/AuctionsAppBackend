@@ -4,7 +4,7 @@ from .serializers import UserSerializer, AuctionSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend # type: ignore
-
+from rest_framework.pagination import PageNumberPagination
 
 class CreateUserAPIView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -17,6 +17,10 @@ class ListCreateAuctionAPIView(generics.ListCreateAPIView):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['category']
     search_fields = ['name']
+    pagination_class = PageNumberPagination
+    pagination_class.page_size = 10
+    pagination_class.page_size_query_param = 'size'
+    pagination_class.max_page_size = 20
 
     def get_permissions(self):
         if self.request.method == 'POST':
