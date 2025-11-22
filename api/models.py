@@ -26,12 +26,6 @@ class Auction(models.Model):
     category = models.CharField(max_length=11, choices=CategoryChoices.choices)
     deadline = models.DateTimeField()
 
-    @property
-    def highest_bid(self):
-        highest = self.bids.order_by('-amount').first()
-        value = highest.amount if highest else self.starting_price
-        return str(value)
-
 class Bid(models.Model):
     auction = models.ForeignKey(
         Auction,

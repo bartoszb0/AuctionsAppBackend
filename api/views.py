@@ -5,6 +5,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend # type: ignore
 from rest_framework.pagination import PageNumberPagination
+from django.db.models import Max
+from django.db.models.functions import Coalesce
 
 class CreateUserAPIView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -14,13 +16,24 @@ class CreateUserAPIView(generics.CreateAPIView):
 class ListCreateAuctionAPIView(generics.ListCreateAPIView):
     queryset = Auction.objects.all().order_by('-created_on')
     serializer_class = AuctionSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter
+    ]
     filterset_fields = ['category']
     search_fields = ['name']
     pagination_class = PageNumberPagination
     pagination_class.page_size = 10
     pagination_class.page_size_query_param = 'size'
     pagination_class.max_page_size = 20
+    ordering_fields = ['created_on', 'highest_bid_amount', 'deadline']
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.annotate(
+            highest_bid_amount=Coalesce(Max('bids__amount'), 'starting_price')
+        )
 
     def get_permissions(self):
         if self.request.method == 'POST':
