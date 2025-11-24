@@ -7,6 +7,7 @@ from django_filters.rest_framework import DjangoFilterBackend # type: ignore
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Max
 from django.db.models.functions import Coalesce
+from .filters import AuctionFilter
 
 class CreateUserAPIView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -20,7 +21,7 @@ class ListCreateAuctionAPIView(generics.ListCreateAPIView):
         filters.SearchFilter,
         filters.OrderingFilter
     ]
-    filterset_fields = ['category', 'closed']
+    filterset_class = AuctionFilter
     search_fields = ['name']
     pagination_class = PageNumberPagination
     pagination_class.page_size = 10
