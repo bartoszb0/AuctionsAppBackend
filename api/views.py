@@ -14,14 +14,13 @@ class CreateUserAPIView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
 class ListCreateAuctionAPIView(generics.ListCreateAPIView):
-    queryset = Auction.objects.all().order_by('-created_on')
     serializer_class = AuctionSerializer
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
         filters.OrderingFilter
     ]
-    filterset_fields = ['category']
+    filterset_fields = ['category', 'closed']
     search_fields = ['name']
     pagination_class = PageNumberPagination
     pagination_class.page_size = 10
@@ -30,10 +29,16 @@ class ListCreateAuctionAPIView(generics.ListCreateAPIView):
     ordering_fields = ['created_on', 'highest_bid_amount', 'deadline']
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        return qs.annotate(
+        queryset = Auction.objects.all().annotate(
             highest_bid_amount=Coalesce(Max('bids__amount'), 'starting_price')
-        )
+        ).order_by('-created_on')
+
+        is_closed_filter = self.request.query_params.get('closed', 'false')
+
+        if is_closed_filter.lower() == 'true':
+            return queryset.filter(closed=True)
+        else:
+            return queryset.filter(closed=False)
 
     def get_permissions(self):
         if self.request.method == 'POST':
