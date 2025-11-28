@@ -1,4 +1,4 @@
-from .models import User, Auction
+from .models import AuctionImage, User, Auction
 from rest_framework import serializers
 from decimal import Decimal, ROUND_HALF_UP
 
@@ -12,8 +12,20 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
     
+
+class AuctionImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AuctionImage
+        fields = ['id', 'image']
+
+    
 class AuctionSerializer(serializers.ModelSerializer):
     highest_bid = serializers.SerializerMethodField()
+    images = AuctionImageSerializer(many=True)
+    uploaded_images = serializers.ListField(
+        child=serializers.ImageField(),
+        write_only=True,
+    )
 
     class Meta:
         model = Auction
@@ -29,8 +41,35 @@ class AuctionSerializer(serializers.ModelSerializer):
             "category",
             "deadline",
             "highest_bid",
+            "images",
+            "uploaded_images"
         ]
-        read_only_fields = ('author', 'highest_bid', 'created_on')
+        read_only_fields = ('author', 'highest_bid', 'created_on', 'images')
+
+
+    def validate_uploaded_images(self, images):
+        if not images:
+            raise serializers.ValidationError("At least one image is required.")
+
+        if len(images) > 10:
+            raise serializers.ValidationError("Max 10 images allowed.")
+
+        for img in images:
+            if img.size > 5 * 1024 * 1024:
+                raise serializers.ValidationError(f"{img.name} is too large (max 5MB).")
+
+        return images
+
+
+    def create(self, validated_data):
+        uploaded_images = validated_data.pop("uploaded_images", [])
+        auction = super().create(validated_data)
+
+        for img in uploaded_images:
+            AuctionImage.objects.create(auction=auction, image=img)
+
+        return auction
+
 
     def get_highest_bid(self, obj):
         value = getattr(obj, 'highest_bid_amount', None)
