@@ -66,6 +66,8 @@ class ListCreateBidAPIView(generics.ListCreateAPIView):
     serializer_class = BidSerializer
     lookup_url_kwarg = 'auction_id'
     permission_classes = [IsAuthenticated]
+    pagination_class = PageNumberPagination
+    pagination_class.page_size = 10
 
     def get_queryset(self):
         queryset = super().get_queryset()
