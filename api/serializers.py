@@ -1,4 +1,4 @@
-from .models import AuctionImage, User, Auction
+from .models import AuctionImage, User, Auction, Bid
 from rest_framework import serializers
 from decimal import Decimal, ROUND_HALF_UP
 
@@ -79,3 +79,10 @@ class AuctionSerializer(serializers.ModelSerializer):
             value = highest.amount if highest else obj.starting_price
         value = Decimal(value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         return str(value)
+
+
+class BidSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bid
+        fields = ['bidder', 'amount']
+        read_only_fields = ['bidder']

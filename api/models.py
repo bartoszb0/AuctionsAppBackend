@@ -34,6 +34,7 @@ class Bid(models.Model):
     )
     bidder = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bids")
     amount = models.DecimalField(max_digits=9, decimal_places=2)
+    placed_at = models.DateTimeField(auto_now_add=True)
 
 class AuctionImage(models.Model):
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE, related_name="images")

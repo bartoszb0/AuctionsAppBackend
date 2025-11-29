@@ -1,6 +1,7 @@
-from .models import User, Auction
+from django.shortcuts import get_object_or_404
+from .models import User, Auction, Bid
 from rest_framework import generics
-from .serializers import UserSerializer, AuctionSerializer
+from .serializers import UserSerializer, AuctionSerializer, BidSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend # type: ignore
@@ -13,6 +14,7 @@ class CreateUserAPIView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
+
 
 class ListCreateAuctionAPIView(generics.ListCreateAPIView):
     serializer_class = AuctionSerializer
@@ -51,8 +53,28 @@ class ListCreateAuctionAPIView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
+
 class RetrieveAuctionAPIView(generics.RetrieveAPIView):
     queryset = Auction.objects.all()
     serializer_class = AuctionSerializer
     lookup_url_kwarg = 'auction_id'
     permission_classes = [AllowAny]
+
+
+class ListCreateBidAPIView(generics.ListCreateAPIView):
+    queryset = Bid.objects.all() 
+    serializer_class = BidSerializer
+    lookup_url_kwarg = 'auction_id'
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        auction = get_object_or_404(Auction, pk=self.kwargs.get(self.lookup_url_kwarg))
+        queryset = queryset.filter(auction=auction)
+        return queryset.order_by('-amount')
+    
+    def perform_create(self, serializer):
+        auction_id = self.kwargs.get(self.lookup_url_kwarg)
+        auction = get_object_or_404(Auction, pk=auction_id)
+        serializer.save(bidder=self.request.user, auction=auction)
+
