@@ -82,7 +82,8 @@ class AuctionSerializer(serializers.ModelSerializer):
 
 
 class BidSerializer(serializers.ModelSerializer):
+    bidder = UserSerializer(read_only=True)
+
     class Meta:
         model = Bid
-        fields = ['bidder', 'amount']
-        read_only_fields = ['bidder']
+        fields = ['id', 'bidder', 'amount', 'placed_on']
