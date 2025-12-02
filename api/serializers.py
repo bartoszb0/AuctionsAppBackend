@@ -92,3 +92,7 @@ class BidSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bid
         fields = ['id', 'bidder', 'amount', 'placed_on']
+
+# Ensuring the new bid is higher than the last bid.
+# Ensuring a user can't bid on their own auction.
+# Checking if the auction is still open (not expired).

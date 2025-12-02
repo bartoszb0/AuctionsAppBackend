@@ -68,3 +68,6 @@ env.bak/
 venv.bak/
 
 media/
+
+celerybeat-schedule
+celerybeat-schedule-*

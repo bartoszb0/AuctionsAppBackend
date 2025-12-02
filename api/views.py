@@ -86,4 +86,3 @@ class ListCreateBidAPIView(generics.ListCreateAPIView):
         auction_id = self.kwargs.get(self.lookup_url_kwarg)
         auction = get_object_or_404(Auction, pk=auction_id)
         serializer.save(bidder=self.request.user, auction=auction)
-
