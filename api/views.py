@@ -16,6 +16,13 @@ class CreateUserAPIView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
 
+class RetrieveUserAPIView(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    lookup_url_kwarg = 'user_id'
+    permission_classes = [AllowAny]
+
+
 class ListCreateAuctionAPIView(generics.ListCreateAPIView):
     serializer_class = AuctionSerializer
     filter_backends = [

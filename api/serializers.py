@@ -2,15 +2,7 @@ from .models import AuctionImage, User, Auction, Bid
 from rest_framework import serializers
 from decimal import Decimal, ROUND_HALF_UP
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ["id", "username", "password"]
-        extra_kwargs = {"password": {"write_only": True}}
-        
-    def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
-        return user
+
     
 
 class AuctionImageSerializer(serializers.ModelSerializer):
@@ -80,6 +72,19 @@ class AuctionSerializer(serializers.ModelSerializer):
         value = Decimal(value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         return str(value)
 
+
+class UserSerializer(serializers.ModelSerializer):
+    auctions = AuctionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = User
+        fields = ["id", "username", "password", "auctions"]
+        extra_kwargs = {"password": {"write_only": True}}
+        
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data)
+        return user
+    
 
 class BidSerializer(serializers.ModelSerializer):
     bidder = UserSerializer(read_only=True)
