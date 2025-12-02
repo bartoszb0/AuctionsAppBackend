@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  # 1. Usługa BAZY DANYCH (jeśli używasz, np. Postgres)
+  # db:
+  #   image: postgres:16-alpine
+  #   ...
+
+  # 2. Usługa BROKERA (Redis)
+  redis:
+    image: redis:7-alpine
+    container_name: redis_broker
+    # Opcjonalnie mapowanie portów dla łatwego debugowania:
+    # ports:
+    #   - "6379:6379"
+
+  # 3. Usługa APLIKACJI DJANGO
+  web:
+    build: . # Używa Twojego Dockerfile z bieżącego katalogu
+    container_name: django_app
+    command: python manage.py runserver 0.0.0.0:8000 # Komenda uruchamiająca Django Dev Server
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app # Montuje lokalny kod, umożliwiając hot-reloading
+    depends_on:
+      - redis # Czeka na Redis przed startem
+    environment:
+      # Pamiętaj, aby skonfigurować Django, aby używało hosta "redis"
+      # (np. CELERY_BROKER_URL = 'redis://redis:6379/0')
+      CELERY_BROKER_HOST: redis
+
+  # 4. Usługa CELERY WORKER
+  celery_worker:
+    build: .
+    container_name: celery_worker
+    command: celery -A backend worker -l info # Zmień 'twoj_projekt' na nazwę głównego modułu Django
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - web
+
+  # 5. Usługa CELERY BEAT (Harmonogram)
+  celery_beat:
+    build: .
+    container_name: celery_beat
+    command: celery -A backend beat -l info --scheduler django_celery_beat.schedulers.DatabaseScheduler # Zmień 'twoj_projekt'
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - web
