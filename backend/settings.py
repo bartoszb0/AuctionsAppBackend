@@ -14,6 +14,7 @@ from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
 import os
+from celery.schedules import crontab
 
 load_dotenv()
 
@@ -155,3 +156,22 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173"
 ]
+
+CACHES = {
+    "default": {
+    "BACKEND": "django_redis.cache.RedisCache",
+    "LOCATION": "redis://127.0.0.1:6379/1",
+    "OPTIONS": {
+        "CLIENT_CLASS": "django_redis.client.DefaultClient",
+    }
+}
+}
+
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/1"
+
+CELERY_BEAT_SCHEDULE = {
+    'close-expired-auctions-every-minute': {
+        'task': 'api.tasks.close_expired_auctions',
+        'schedule': crontab(minute='*/1'),
+    },
+}
