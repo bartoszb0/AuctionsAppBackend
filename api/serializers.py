@@ -8,10 +8,17 @@ class AuctionImageSerializer(serializers.ModelSerializer):
         model = AuctionImage
         fields = ['id', 'image']
 
+
+class SmallUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username"]
+
     
 class AuctionSerializer(serializers.ModelSerializer):
     highest_bid = serializers.SerializerMethodField()
     images = AuctionImageSerializer(many=True, read_only=True)
+    author = SmallUserSerializer(read_only=True)
 
     uploaded_images = serializers.ListField(
         child=serializers.ImageField(),
@@ -35,7 +42,7 @@ class AuctionSerializer(serializers.ModelSerializer):
             "images",
             "uploaded_images"
         ]
-        read_only_fields = ('author', 'highest_bid', 'created_on')
+        read_only_fields = ('highest_bid', 'created_on')
 
 
     def validate_uploaded_images(self, images):
