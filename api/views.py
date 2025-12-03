@@ -10,6 +10,9 @@ from django.db.models import Max
 from django.db.models.functions import Coalesce
 from .filters import AuctionFilter
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 
 
 class CreateUserAPIView(generics.CreateAPIView):
@@ -74,7 +77,7 @@ class ListCreateBidAPIView(generics.ListCreateAPIView):
     queryset = Bid.objects.all() 
     serializer_class = BidSerializer
     lookup_url_kwarg = 'auction_id'
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     pagination_class = PageNumberPagination
     pagination_class.page_size = 10
 
@@ -89,5 +92,19 @@ class ListCreateBidAPIView(generics.ListCreateAPIView):
         auction = get_object_or_404(Auction, pk=auction_id)
         serializer.save(bidder=self.request.user, auction=auction)
 
+
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
+
+class FollowUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        target_user = get_object_or_404(User, pk=pk)
+        if request.user.follows.filter(pk=target_user.pk).exists():
+            request.user.follows.remove(target_user)
+            return Response({"detail": f"Unfollowed {target_user.username}"})
+        else:
+            request.user.follows.add(target_user)
+            return Response({"detail": f"Followed {target_user.username}"})

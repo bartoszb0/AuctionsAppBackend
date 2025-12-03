@@ -80,17 +80,24 @@ class AuctionSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     auctions = AuctionSerializer(many=True, read_only=True)
+    followers = serializers.SerializerMethodField(read_only=True)
+    following = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        fields = ["id", "username", "password", "auctions"]
+        fields = ["id", "username", "password", "auctions", "followers", "following"]
         extra_kwargs = {"password": {"write_only": True}}
         
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
     
-
+    def get_followers(self, obj):
+        return SmallUserSerializer(obj.followers.all(), many=True).data
+    
+    def get_following(self, obj):
+        return SmallUserSerializer(obj.follows.all(), many=True).data
+    
 class BidSerializer(serializers.ModelSerializer):
     bidder = UserSerializer(read_only=True)
 

@@ -5,7 +5,12 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class User(AbstractUser):
-    pass
+    follows = models.ManyToManyField(
+        "self",
+        symmetrical=False,
+        related_name="followers",
+        blank=True
+    )
 
 class Auction(models.Model):
     class CategoryChoices(models.TextChoices):
