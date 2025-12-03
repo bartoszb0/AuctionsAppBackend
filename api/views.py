@@ -108,3 +108,13 @@ class FollowUserView(APIView):
         else:
             request.user.follows.add(target_user)
             return Response({"detail": f"Followed {target_user.username}"})
+        
+
+class ListFollowedAuctionsAPIView(generics.ListAPIView):
+    queryset = Auction.objects.all()
+    serializer_class = AuctionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Auction.objects.filter(author__in=user.follows.all())

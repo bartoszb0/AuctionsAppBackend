@@ -8,4 +8,5 @@ urlpatterns = [
     path('auctions/', views.ListCreateAuctionAPIView.as_view(), name="auctions"),
     path('auctions/<int:auction_id>/', views.RetrieveAuctionAPIView.as_view(), name="auction"),
     path('auctions/<int:auction_id>/bids/', views.ListCreateBidAPIView.as_view(), name="bids"),
+    path('auctions/followed/', views.ListFollowedAuctionsAPIView.as_view(), name="followed_auctions")
 ]
