@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from .models import User, Auction, Bid
 from rest_framework import generics
-from .serializers import UserSerializer, AuctionSerializer, BidSerializer
+from .serializers import UserSerializer, AuctionSerializer, BidSerializer, MyTokenObtainPairSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend # type: ignore
@@ -9,6 +9,8 @@ from rest_framework.pagination import PageNumberPagination
 from django.db.models import Max
 from django.db.models.functions import Coalesce
 from .filters import AuctionFilter
+from rest_framework_simplejwt.views import TokenObtainPairView
+
 
 class CreateUserAPIView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -86,3 +88,6 @@ class ListCreateBidAPIView(generics.ListCreateAPIView):
         auction_id = self.kwargs.get(self.lookup_url_kwarg)
         auction = get_object_or_404(Auction, pk=auction_id)
         serializer.save(bidder=self.request.user, auction=auction)
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer

@@ -1,9 +1,7 @@
 from .models import AuctionImage, User, Auction, Bid
 from rest_framework import serializers
 from decimal import Decimal, ROUND_HALF_UP
-
-
-    
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer    
 
 class AuctionImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -96,3 +94,10 @@ class BidSerializer(serializers.ModelSerializer):
 # Ensuring the new bid is higher than the last bid.
 # Ensuring a user can't bid on their own auction.
 # Checking if the auction is still open (not expired).
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['username'] = user.username
+        return token
