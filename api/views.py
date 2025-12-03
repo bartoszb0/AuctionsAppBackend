@@ -111,7 +111,6 @@ class FollowUserView(APIView):
         
 
 class ListFollowedAuctionsAPIView(generics.ListAPIView):
-    queryset = Auction.objects.all()
     serializer_class = AuctionSerializer
     permission_classes = [IsAuthenticated]
 
