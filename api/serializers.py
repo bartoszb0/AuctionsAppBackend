@@ -79,13 +79,12 @@ class AuctionSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    auctions = AuctionSerializer(many=True, read_only=True)
     followers = serializers.SerializerMethodField(read_only=True)
     following = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        fields = ["id", "username", "password", "auctions", "followers", "following"]
+        fields = ["id", "username", "password", "followers", "following"]
         extra_kwargs = {"password": {"write_only": True}}
         
     def create(self, validated_data):

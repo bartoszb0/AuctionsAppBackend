@@ -28,6 +28,25 @@ class RetrieveUserAPIView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
 
 
+class ListUserAuctions(generics.ListAPIView):
+    serializer_class = AuctionSerializer
+    lookup_url_kwarg = 'user_id'
+    permission_classes = [AllowAny]
+    pagination_class = PageNumberPagination
+    pagination_class.page_size = 10
+
+    def get_queryset(self):
+        user = get_object_or_404(User, pk=self.kwargs.get(self.lookup_url_kwarg))
+        queryset = Auction.objects.filter(author=user)
+        return queryset.annotate(
+            closed_order=Case(
+                When(closed=True, then=Value(1)),
+                When(closed=False, then=Value(0)),
+                output_field=IntegerField()
+            )
+        ).order_by("closed_order", "deadline")
+
+
 class ListCreateAuctionAPIView(generics.ListCreateAPIView):
     serializer_class = AuctionSerializer
     filter_backends = [
