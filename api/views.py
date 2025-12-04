@@ -12,7 +12,7 @@ from .filters import AuctionFilter
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from django.db.models import Case, When, Value, IntegerField
 
 
 class CreateUserAPIView(generics.CreateAPIView):
@@ -113,7 +113,17 @@ class FollowUserView(APIView):
 class ListFollowedAuctionsAPIView(generics.ListAPIView):
     serializer_class = AuctionSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = PageNumberPagination
+    pagination_class.page_size = 10
 
     def get_queryset(self):
         user = self.request.user
-        return Auction.objects.filter(author__in=user.follows.all())
+        return Auction.objects.filter(
+            author__in=user.follows.all()
+        ).annotate(
+            closed_order=Case(
+                When(closed=True, then=Value(1)),
+                When(closed=False, then=Value(0)),
+                output_field=IntegerField()
+            )
+        ).order_by("closed_order", "deadline")
