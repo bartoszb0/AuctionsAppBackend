@@ -100,6 +100,13 @@ class ListCreateBidAPIView(generics.ListCreateAPIView):
     pagination_class = PageNumberPagination
     pagination_class.page_size = 10
 
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [AllowAny]
+        return [permission() for permission in permission_classes]
+
     def get_queryset(self):
         queryset = super().get_queryset()
         auction = get_object_or_404(Auction, pk=self.kwargs.get(self.lookup_url_kwarg))

@@ -1,3 +1,5 @@
+from django.utils import timezone
+from django.shortcuts import get_object_or_404
 from .models import AuctionImage, User, Auction, Bid
 from rest_framework import serializers
 from decimal import Decimal, ROUND_HALF_UP
@@ -108,6 +110,34 @@ class BidSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bid
         fields = ['id', 'bidder', 'amount', 'placed_on']
+        read_only_fields = ['auction']
+        
+    def validate(self, attrs):
+        request = self.context['request']
+        view = self.context['view']
+        auction_id = view.kwargs.get('auction_id')
+
+        auction = get_object_or_404(Auction, pk=auction_id)
+        amount = attrs['amount']
+        user = request.user
+
+        if user == auction.author:
+            raise serializers.ValidationError("You can't bid on your auction")
+        
+        if auction.deadline < timezone.now():
+            raise serializers.ValidationError("Auction has ended")
+        
+
+        highest_bid = auction.bids.order_by('-amount').first()
+        highest_amount = Decimal(highest_bid.amount) if highest_bid else Decimal('0')
+
+        minimal_allowed = Decimal(auction.minimal_bid) + highest_amount
+
+        if Decimal(amount) < minimal_allowed:
+            raise serializers.ValidationError(f"Bid must be at least ${minimal_allowed}")
+
+        return attrs
+
 
 # Ensuring the new bid is higher than the last bid.
 # Ensuring a user can't bid on their own auction.
