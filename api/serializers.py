@@ -81,28 +81,34 @@ class AuctionSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    followers = serializers.SerializerMethodField()
-    following = serializers.SerializerMethodField()
+    followers_count = serializers.IntegerField(source="followers.count", read_only=True)
+    following_count = serializers.SerializerMethodField()
     auctions_count = serializers.IntegerField(source="auctions.count")
     open_auctions_count = serializers.SerializerMethodField()
+    is_following = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["id", "username", "password", "followers", "following", "auctions_count", "open_auctions_count"]
+        fields = ["id", "username", "password", "is_following", "followers_count", "following_count", "auctions_count", "open_auctions_count"]
         extra_kwargs = {"password": {"write_only": True}}
         
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
     
-    def get_followers(self, obj):
-        return SmallUserSerializer(obj.followers.all(), many=True).data
-    
-    def get_following(self, obj):
-        return SmallUserSerializer(obj.follows.all(), many=True).data
+    def get_following_count(self, obj):
+        return obj.follows.all().count()
     
     def get_open_auctions_count(self, obj):
         return obj.auctions.filter(closed=False).count()
+    
+    def get_is_following(self, obj):
+        request_user = self.context['request'].user
+
+        if not request_user.is_authenticated or request_user == obj:
+            return None
+        
+        return obj.followers.filter(pk=request_user.pk).exists()
     
 class BidSerializer(serializers.ModelSerializer):
     bidder = UserSerializer(read_only=True)
